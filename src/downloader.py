@@ -1,0 +1,46 @@
+import os
+import shutil
+import glob
+from kaggle.api.kaggle_api_extended import KaggleApi
+from src.config import DATASET_NAME, RAW_DIR, RAW_FILE_CHECK
+
+def download_data_if_needed():
+    # Check if raw data already exists
+    if os.path.exists(RAW_FILE_CHECK):
+        print("✅ Raw data already exists. Skipping download.")
+        return
+
+    print(f"⬇️ Raw data not found. Downloading {DATASET_NAME} from Kaggle...")
+    
+    try:
+        # Download and unzip the dataset using Kaggle API
+        api = KaggleApi()
+        api.authenticate() 
+        
+        # Download and extract the dataset to the RAW_DIR
+        api.dataset_download_files(DATASET_NAME, path=RAW_DIR, unzip=True)
+
+        extracted_csvs = glob.glob(os.path.join(RAW_DIR, "**", "*.csv"), recursive=True)
+
+        for file_path in extracted_csvs:
+            filename = os.path.basename(file_path)
+            destination_path = os.path.join(RAW_DIR, filename)
+
+            # Move the file to RAW_DIR if it's not already there
+            if os.path.abspath(file_path) != os.path.abspath(destination_path):
+                shutil.move(file_path, destination_path)
+                print(f"🚚 Moved: {filename} to data/raw/")
+
+        # 5. Delete any remaining folders in RAW_DIR
+        for item in os.listdir(RAW_DIR):
+            item_path = os.path.join(RAW_DIR, item)
+            if os.path.isdir(item_path):
+                shutil.rmtree(item_path)
+                print(f"🧹 Cleaned up folder: {item}")
+        
+        print("✅ Download and extraction complete.")
+        
+    except Exception as e:
+        print(f"❌ Error downloading data: {e}")
+        print("⚠️ Ensure 'kaggle.json' is in the project root folder!")
+        raise e

@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+
+.venv/
+
+data/raw/
+data/processed/
+
+kaggle.json
+
+./vscode/
+.idea/
