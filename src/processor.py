@@ -5,37 +5,54 @@ import  glob
 from src.config import RAW_DIR
 
 def find_file(filename):
-    """პოულობს ფაილს RAW_DIR-ში ან მის ნებისმიერ ქვე-ფოლდერში"""
     search_path = os.path.join(RAW_DIR, "**", filename)
     files = glob.glob(search_path, recursive=True)
     if not files:
-        raise FileNotFoundError(f"❌ ფაილი {filename} ვერ მოიძებნა {RAW_DIR}-ში!")
+        raise FileNotFoundError(f"❌ File {filename} not found in {RAW_DIR} !")
     return files[0]
 
 def process_raw_data():
     print("⏳ Processing raw CSV files... This might take a while.")
     
     # 1. Load Data
-    classes = pd.read_csv(os.path.join(RAW_DIR, 'elliptic_txs_classes.csv'))
-    edges = pd.read_csv(os.path.join(RAW_DIR, 'elliptic_txs_edgelist.csv'))
-    features = pd.read_csv(os.path.join(RAW_DIR, 'elliptic_txs_features.csv'), header=None)
+    classes_df = pd.read_csv(os.path.join(RAW_DIR, 'elliptic_txs_classes.csv'))
+    edges_df = pd.read_csv(os.path.join(RAW_DIR, 'elliptic_txs_edgelist.csv'))
+    features_df = pd.read_csv(os.path.join(RAW_DIR, 'elliptic_txs_features.csv'), header=None)
     
-    # 2. Merge & Clean (Elliptic Specifics)
-    classes = classes.rename(columns={'txId': 'tx_id'})
-    edges = edges.rename(columns={'txId1': 'source', 'txId2': 'target'})
-    features = features.rename(columns={0: 'tx_id'})
+    # Change column names for consistency
+    classes_df.rename(columns={'txId': 'tx_id'}, inplace=True)
+    features_df.rename(columns={0: 'tx_id'}, inplace=True)
+
+    # 2. Node ID Mapping 
+    # Create dictionary to map original tx_id to a contiguous range of integers
+    all_tx_ids = features_df['tx_id'].unique()
+    id_map = {old_id: new_idx for new_idx, old_id in enumerate(all_tx_ids)}
     
-    # 3. Map Classes (Illicit=1, Licit=0, Unknown=-1)
-    class_map = {'illicit': 1, 'licit': 0, 'unknown': -1}
-    classes['class'] = classes['class'].map(class_map)
+    # 3. Features & Labels Alignment
+    combined_df = pd.merge(features_df, classes_df, on='tx_id', how='left')
     
-    # TODO: Add more Elliptic-specific processing if needed (e.g., handling time steps, creating additional features)
+    # 4. Map Classes 
+    class_map = {"1": 1, "2": 0, "unknown": -1}
+    combined_df['class'] = combined_df['class'].map(class_map)
+    
+    # 5. Prepare Tensors
+    x = torch.tensor(combined_df.drop(columns=['tx_id', 'class']).values, dtype=torch.float)
+    y = torch.tensor(combined_df['class'].values, dtype=torch.long)
+    
+    # 6. Transform Edge Index 
+    edges_df['source'] = edges_df['txId1'].map(id_map)
+    edges_df['target'] = edges_df['txId2'].map(id_map)
+    
+    edges_df.dropna(subset=['source', 'target'], inplace=True)
+    
+    edge_index = torch.tensor(edges_df[['source', 'target']].values.T, dtype=torch.long)
     
     data_object = {
-        "x": torch.tensor(features.iloc[:, 1:].values, dtype=torch.float), # Features
-        "y": torch.tensor(classes['class'].values, dtype=torch.long),      # Labels
-        "edge_index": torch.tensor(edges[['source', 'target']].values.T, dtype=torch.long) # Edges
+        "x": x,
+        "y": y,
+        "edge_index": edge_index,
+        "id_map": id_map  
     }
     
-    print("✅ Processing complete.")
+    print(f"✅ Processing complete. Nodes: {x.shape[0]}, Edges: {edge_index.shape[1]}")
     return data_object
