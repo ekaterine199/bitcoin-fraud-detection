@@ -1,0 +1,1 @@
+https://www.kaggle.com/code/iogbonna/introduction-to-graph-neural-network-with-pytorch
