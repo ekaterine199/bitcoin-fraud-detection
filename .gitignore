@@ -8,5 +8,7 @@ data/processed/
 
 kaggle.json
 
-./vscode/
+.vscode/
 .idea/
+
+dl-bitcoin-fraud/
