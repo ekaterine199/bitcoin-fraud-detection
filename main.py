@@ -5,6 +5,9 @@ from src.dataset import EllipticDataset
 from src.models.sage import FraudGraphSAGE
 from src.engine import train
 from src.evaluate import evaluate
+from src.utils.sanity_check import perform_sanity_check
+from src.utils.visualizer import visualize_graph
+
 
 def main():
     print("🚀 Starting the pipeline...")
@@ -12,6 +15,9 @@ def main():
     raw_data = dataset.data  
     data = Data(**raw_data) if isinstance(raw_data, dict) else raw_data
     
+    perform_sanity_check(data)
+    visualize_graph(data, output_dir="img", num_nodes=200)
+
     num_nodes = data.x.shape[0]
     indices = torch.randperm(num_nodes)
     train_size = int(0.8 * num_nodes)
