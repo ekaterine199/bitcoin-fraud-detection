@@ -12,7 +12,6 @@ def main():
     raw_data = dataset.data  
     data = Data(**raw_data) if isinstance(raw_data, dict) else raw_data
     
-    # მასკების შექმნა, რადგან Elliptic-ს არ აქვს ისინი თავისით
     num_nodes = data.x.shape[0]
     indices = torch.randperm(num_nodes)
     train_size = int(0.8 * num_nodes)
