@@ -1,1 +1,2 @@
 https://www.kaggle.com/code/iogbonna/introduction-to-graph-neural-network-with-pytorch
+https://distill.pub/2021/gnn-intro/
