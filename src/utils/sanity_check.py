@@ -17,5 +17,24 @@ def perform_sanity_check(data):
     if hasattr(data, 'y') and data.y is not None:
         unique_labels = torch.unique(data.y)
         print(f"   - Detected unique labels: {unique_labels.tolist()}")
+
+    # NEW CODE =====================================================
+    # Validate masks if they exist.
+    if hasattr(data, 'train_mask'):
+        assert data.train_mask.shape[0] == num_nodes, "train_mask size does not match number of nodes!"
+        print(f"   - Train labeled nodes: {int(data.train_mask.sum())}")
+
+    if hasattr(data, 'val_mask'):
+        assert data.val_mask.shape[0] == num_nodes, "val_mask size does not match number of nodes!"
+        print(f"   - Val labeled nodes:   {int(data.val_mask.sum())}")
+
+    if hasattr(data, 'test_mask'):
+        assert data.test_mask.shape[0] == num_nodes, "test_mask size does not match number of nodes!"
+        print(f"   - Test labeled nodes:  {int(data.test_mask.sum())}")
+
+    if hasattr(data, 'y') and data.y is not None:
+        unknown_count = int((data.y == -1).sum())
+        print(f"   - Unknown nodes:       {unknown_count}")
+    # =====================================================
         
     print("✅ Sanity check passed successfully!")
