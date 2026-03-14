@@ -12,14 +12,7 @@ class EllipticDataset:
         if os.path.exists(PROCESSED_FILE):
             print(f"🚀 Loading cached graph data from {PROCESSED_FILE}")
 
-            # OLD CODE COMMENTED OUT BELOW:
-            # return torch.load(PROCESSED_FILE, weights_only=False)
-
-            # NEW CODE =====================================================
-            # Keep weights_only=False so PyG Data objects can be loaded correctly
-            # from cache on newer PyTorch versions.
             return torch.load(PROCESSED_FILE, weights_only=False)
-            # =============================================================
         
         print("⚠️ Processed data missing. Initializing setup sequence...")
 

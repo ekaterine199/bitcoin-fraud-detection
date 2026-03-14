@@ -10,4 +10,5 @@ torch_geometric
 scikit-learn
 networkx
 matplotlib
+numpy
 seaborn

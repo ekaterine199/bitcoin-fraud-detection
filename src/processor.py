@@ -48,8 +48,6 @@ def process_raw_data():
     # ==============================================================
     
     # 5. Prepare Tensors
-    # OLD CODE COMMENTED OUT BELOW:
-    # x = torch.tensor(combined_df.drop(columns=['tx_id', 'class']).values, dtype=torch.float)
     x = torch.tensor(combined_df.drop(columns=['tx_id', 'class']).values, dtype=torch.float)
 
     y = torch.tensor(combined_df['class'].values, dtype=torch.long)

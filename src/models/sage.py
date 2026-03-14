@@ -15,28 +15,9 @@ class FraudGraphSAGE(torch.nn.Module):
         for _ in range(num_layers - 2):
             self.convs.append(SAGEConv(hidden_channels, hidden_channels))
             
-        # OLD CODE COMMENTED OUT BELOW:
-        # self.convs.append(SAGEConv(hidden_channels, out_channels))
-
-        # NEW CODE =====================================================
-        # Keep the final GraphSAGE layer in hidden space so embeddings
-        # can be reused for t-SNE, then classify with a linear layer.
         self.convs.append(SAGEConv(hidden_channels, hidden_channels))
         self.classifier = torch.nn.Linear(hidden_channels, out_channels)
-        # =============================================================
-
-    # OLD CODE COMMENTED OUT BELOW:
-    # def forward(self, x, edge_index):
-    #     for i, conv in enumerate(self.convs[:-1]):
-    #         x = conv(x, edge_index)
-    #         x = F.relu(x)
-    #         x = F.dropout(x, p=self.dropout, training=self.training)
-    #         
-    #     x = self.convs[-1](x, edge_index)
-    #     
-    #     return x
-
-    # NEW CODE =====================================================
+        
     def forward(self, x, edge_index, return_embeddings=False):
         for i, conv in enumerate(self.convs[:-1]):
             x = conv(x, edge_index)
@@ -51,4 +32,3 @@ class FraudGraphSAGE(torch.nn.Module):
             return out, embeddings
         
         return out
-    # =============================================================
