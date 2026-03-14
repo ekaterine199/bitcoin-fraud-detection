@@ -1,10 +1,12 @@
-# import torch
-# from torch_geometric.data import Data
-# from src.models.gcn import FraudGCN
-# from src.dataset import EllipticDataset
-# from src.models.sage import FraudGraphSAGE
-# from src.engine import train
-# from src.evaluate import evaluate
+import torch
+from torch_geometric.data import Data
+from src.models.gcn import FraudGCN
+from src.dataset import EllipticDataset
+from src.models.sage import FraudGraphSAGE
+from src.engine import train
+from src.evaluate import evaluate
+from src.utils.sanity_check import perform_sanity_check
+from src.utils.visualizer import visualize_graph
 from src.baseline import run_baseline
 
 def main():
@@ -26,9 +28,13 @@ def main():
     # data.val_mask = torch.zeros(num_nodes, dtype=torch.bool)
     # data.val_mask[sorted_idx[split:]] = True
     
-    # num_nodes = data.x.shape[0]
-    # indices = torch.randperm(num_nodes)
-    # train_size = int(0.8 * num_nodes)
+
+    perform_sanity_check(data)
+    visualize_graph(data, output_dir="img", num_nodes=200)
+
+    num_nodes = data.x.shape[0]
+    indices = torch.randperm(num_nodes)
+    train_size = int(0.8 * num_nodes)
     
     # data.train_mask = torch.zeros(num_nodes, dtype=torch.bool)
     # data.train_mask[indices[:train_size]] = True
