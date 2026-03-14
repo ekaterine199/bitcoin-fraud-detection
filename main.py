@@ -12,6 +12,7 @@ from src.dataset import EllipticDataset
 from src.engine import train
 from src.evaluate import evaluate
 from src.utils.sanity_check import perform_sanity_check
+
 from src.utils.visualizer import visualize_graph, visualize_tsne_embeddings
 
 
@@ -229,14 +230,29 @@ def run_single_experiment(data, device, model_name, loss_name, run_id):
     print(f"✅ Saved t-SNE to img/{tsne_file}")
 
     return metrics_by_split
-# =============================================================
 
+from src.utils.visualizer import visualize_graph
+from src.baseline import run_baseline
 
 def main():
     print("🚀 Starting the pipeline...")
     dataset = EllipticDataset()
     raw_data = dataset.data
     data = Data(**raw_data) if isinstance(raw_data, dict) else raw_data
+
+    run_baseline()
+
+#     # Temporal train/val split — sort by time_step (feature col 0)
+#     # so the GNN is evaluated the same way as the baseline
+#     time_steps = data.x[:, 0].cpu()
+#     sorted_idx = torch.argsort(time_steps)
+#     num_nodes  = data.x.shape[0]
+#     split      = int(0.80 * num_nodes)
+#     data.train_mask = torch.zeros(num_nodes, dtype=torch.bool)
+#     data.train_mask[sorted_idx[:split]] = True
+#     data.val_mask = torch.zeros(num_nodes, dtype=torch.bool)
+#     data.val_mask[sorted_idx[split:]] = True
+    
 
     perform_sanity_check(data)
     visualize_graph(data, output_dir="img", num_nodes=200)
