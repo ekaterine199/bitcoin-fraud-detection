@@ -1,7 +1,6 @@
 import os
 import shutil
 import glob
-from kaggle.api.kaggle_api_extended import KaggleApi
 from src.config import DATASET_NAME, RAW_DIR, RAW_FILE_CHECK
 
 def download_data_if_needed():
@@ -13,6 +12,18 @@ def download_data_if_needed():
     print(f"⬇️ Raw data not found. Downloading {DATASET_NAME} from Kaggle...")
     
     try:
+        # OLD CODE COMMENTED OUT BELOW:
+        # from kaggle.api.kaggle_api_extended import KaggleApi
+
+        # NEW CODE =====================================================
+        # Import Kaggle only when a download is actually needed.
+        # This prevents ModuleNotFoundError when the raw CSVs are already present.
+        from kaggle.api.kaggle_api_extended import KaggleApi
+
+        # Allow kaggle.json to be placed in the project root.
+        os.environ["KAGGLE_CONFIG_DIR"] = os.getcwd()
+        # =============================================================
+
         # Download and unzip the dataset using Kaggle API
         api = KaggleApi()
         api.authenticate() 
@@ -42,5 +53,11 @@ def download_data_if_needed():
         
     except Exception as e:
         print(f"❌ Error downloading data: {e}")
-        print("⚠️ Ensure 'kaggle.json' is in the project root folder!")
+
+        # OLD CODE COMMENTED OUT BELOW:
+        # print("⚠️ Ensure 'kaggle.json' is in the project root folder!")
+
+        # NEW CODE =====================================================
+        print("⚠️ Ensure 'kaggle.json' is in the project root folder or that the raw CSVs already exist in data/raw.")
+        # =============================================================
         raise e
