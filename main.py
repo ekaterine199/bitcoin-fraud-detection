@@ -240,39 +240,10 @@ def main():
     raw_data = dataset.data
     data = Data(**raw_data) if isinstance(raw_data, dict) else raw_data
 
-    run_baseline()
-
-#     # Temporal train/val split — sort by time_step (feature col 0)
-#     # so the GNN is evaluated the same way as the baseline
-#     time_steps = data.x[:, 0].cpu()
-#     sorted_idx = torch.argsort(time_steps)
-#     num_nodes  = data.x.shape[0]
-#     split      = int(0.80 * num_nodes)
-#     data.train_mask = torch.zeros(num_nodes, dtype=torch.bool)
-#     data.train_mask[sorted_idx[:split]] = True
-#     data.val_mask = torch.zeros(num_nodes, dtype=torch.bool)
-#     data.val_mask[sorted_idx[split:]] = True
-    
-
+    run_baseline()    
     perform_sanity_check(data)
     visualize_graph(data, output_dir="img", num_nodes=200)
 
-    # OLD CODE COMMENTED OUT BELOW:
-    # num_nodes = data.x.shape[0]
-    # indices = torch.randperm(num_nodes)
-    # train_size = int(0.8 * num_nodes)
-    #
-    # data.train_mask = torch.zeros(num_nodes, dtype=torch.bool)
-    # data.train_mask[indices[:train_size]] = True
-    #
-    # data.val_mask = torch.zeros(num_nodes, dtype=torch.bool)
-    # data.val_mask[indices[train_size:]] = True
-
-    # NEW CODE =====================================================
-    # processor.py now prepares strict temporal masks:
-    #   train: timesteps 1-30
-    #   val:   timesteps 31-34
-    #   test:  timesteps 35-49
     if not hasattr(data, "train_mask") or not hasattr(data, "val_mask") or not hasattr(data, "test_mask"):
         raise ValueError("Data object is missing train/val/test masks. Check processor.py.")
 
@@ -280,28 +251,10 @@ def main():
     print(f"Val labeled nodes:   {int(data.val_mask.sum())}")
     print(f"Test labeled nodes:  {int(data.test_mask.sum())}")
     print(f"Unknown nodes:       {int((data.y == -1).sum())}")
-    # =============================================================
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     data = data.to(device)
 
-    # OLD CODE COMMENTED OUT BELOW:
-    # model = FraudGraphSAGE(
-    #     in_channels=data.x.shape[1],
-    #     hidden_channels=128,
-    #     out_channels=2,
-    #     num_layers=3
-    # ).to(device)
-
-    # OLD CODE COMMENTED OUT BELOW:
-    # Change these two values to run different experiments:
-    # model_name: "gcn", "gat", or "sage"
-    # loss_name: "weighted_ce" or "focal"
-    # model_name = "gcn"
-    # loss_name = "weighted_ce"
-
-    # NEW CODE =====================================================
-    # Allow multiple experiments in one session without restarting.
     session_results = []
     run_id = 1
 
@@ -324,7 +277,6 @@ def main():
             break
 
     save_metrics(session_results, "experiment_session_summary.json")
-    # =============================================================
 
     print("✅ Pipeline complete.")
 
