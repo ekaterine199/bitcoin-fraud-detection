@@ -37,21 +37,12 @@ def process_raw_data():
     class_map = {"1": 1, "2": 0, "unknown": -1}
     combined_df['class'] = combined_df['class'].astype(str).map(class_map)
 
-    # NEW ADDED CODE ===============================================
-    # The Elliptic dataset includes a time step as the first feature column after tx_id.
-    # We keep unknown nodes in the graph, but exclude them from train/val/test supervision.
-    # Required split for the project:
-    #   Train: timesteps 1-30
-    #   Val:   timesteps 31-34
-    #   Test:  timesteps 35-49
     timestep_col = combined_df.columns[1]
     combined_df.rename(columns={timestep_col: 'timestep'}, inplace=True)
-    # ==============================================================
     
     # 5. Prepare Tensors
     # x = torch.tensor(combined_df.drop(columns=['tx_id', 'class']).values, dtype=torch.float)
     x_np = combined_df.drop(columns=['tx_id', 'class']).values
-
     y = torch.tensor(combined_df['class'].values, dtype=torch.long)
     timesteps = torch.tensor(combined_df['timestep'].values, dtype=torch.long)
     
@@ -60,36 +51,20 @@ def process_raw_data():
     edges_df['target'] = edges_df['txId2'].map(id_map)
     
     edges_df.dropna(subset=['source', 'target'], inplace=True)
-    
     edge_index = torch.tensor(edges_df[['source', 'target']].values.T, dtype=torch.long)
 
-    # NEW ADDED CODE ===============================================
-    # Unknown nodes remain in the graph but are excluded from supervised masks.
     labeled_mask = (y != -1)
-
     train_mask = (timesteps >= 1) & (timesteps <= 30) & labeled_mask
     val_mask = (timesteps >= 31) & (timesteps <= 34) & labeled_mask
     test_mask = (timesteps >= 35) & (timesteps <= 49) & labeled_mask
-    # ==============================================================
 
-    # Scale features to prevent exploding gradients in GNNs
     scaler = StandardScaler()
-    # Fit ONLY on the training nodes to prevent future data leakage
     scaler.fit(x_np[train_mask.numpy()])
     x_scaled = scaler.transform(x_np)
 
     x = torch.tensor(x_scaled, dtype=torch.float)
 
-    # OLD CODE COMMENTED OUT BELOW:
-    # data_object = {
-    #     "x": x,
-    #     "y": y,
-    #     "edge_index": edge_index,
-    #     "id_map": id_map  
-    # }
-
-    # NEW ADDED CODE ===============================================
-    # Return a PyG Data object directly so downstream training/evaluation works cleanly.
+    
     data_object = Data(
         x=x,
         y=y,
@@ -100,9 +75,7 @@ def process_raw_data():
         test_mask=test_mask
     )
 
-    # Keep id_map attached for debugging/reference.
     data_object.id_map = id_map
-    # ==============================================================
 
     print(f"✅ Processing complete. Nodes: {x.shape[0]}, Edges: {edge_index.shape[1]}")
     print(f"   - Train labeled nodes: {int(train_mask.sum())}")
