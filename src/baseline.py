@@ -353,13 +353,25 @@ def run_baseline() -> dict:
     X, y, feature_names, time_steps = _load_data()
 
     # ── Temporal split (sort by time_step, train on earlier 80%) ──
-    sorted_idx = np.argsort(time_steps)
-    split      = int(len(sorted_idx) * 0.80)
-    train_idx  = sorted_idx[:split]
-    test_idx   = sorted_idx[split:]
+    # sorted_idx = np.argsort(time_steps)
+    # split      = int(len(sorted_idx) * 0.80)
+    # train_idx  = sorted_idx[:split]
+    # test_idx   = sorted_idx[split:]
 
-    X_train, X_test = X[train_idx], X[test_idx]
-    y_train, y_test = y[train_idx], y[test_idx]
+    # X_train, X_test = X[train_idx], X[test_idx]
+    # y_train, y_test = y[train_idx], y[test_idx]
+
+    # ── EXACT same temporal split as GNN (processor.py) ─────────────────────
+    print(" Using EXACT GNN split (TS 1-34 train+val | TS 35-49 test)...")
+
+    train_mask = (time_steps <= 34)          
+    test_mask  = (time_steps >= 35)
+
+    X_train, X_test = X[train_mask], X[test_mask]
+    y_train, y_test = y[train_mask], y[test_mask]
+
+    print(f" Train : {len(X_train):,} nodes ({y_train.mean()*100:.1f}% illicit)")
+    print(f" Test  : {len(X_test):,} nodes ({y_test.mean()*100:.1f}% illicit)\n")
 
     scaler  = StandardScaler()
     X_train = scaler.fit_transform(X_train)

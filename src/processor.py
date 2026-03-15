@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import torch
 import os
 import glob
@@ -57,13 +58,17 @@ def process_raw_data():
     train_mask = (timesteps >= 1) & (timesteps <= 30) & labeled_mask
     val_mask = (timesteps >= 31) & (timesteps <= 34) & labeled_mask
     test_mask = (timesteps >= 35) & (timesteps <= 49) & labeled_mask
-
     scaler = StandardScaler()
-    scaler.fit(x_np[train_mask.numpy()])
-    x_scaled = scaler.transform(x_np)
+    # scaler.fit(x_np[train_mask.numpy()])
+    # x_scaled = scaler.transform(x_np)
+    # x = torch.tensor(x_scaled, dtype=torch.float)
+    time_feature   = x_np[:, 0:1]                    
+    other_features = x_np[:, 1:]                     
+    scaler.fit(other_features[train_mask.numpy()])   
+    other_scaled = scaler.transform(other_features)
+    x_scaled = np.hstack([time_feature, other_scaled])   
 
     x = torch.tensor(x_scaled, dtype=torch.float)
-
     
     data_object = Data(
         x=x,
