@@ -19,10 +19,5 @@ def seed_everything(seed=42):
     torch.backends.cudnn.benchmark = False
 
     torch.use_deterministic_algorithms(True, warn_only=True)
-    
-    # 4. For PyTorch 1.8+ specifically for some operations
-    # torch.use_deterministic_algorithms(True) 
-    # გაითვალისწინეთ: ზოგიერთი GNN ოპერაცია შეიძლება შენელდეს ან ამოაგდოს Error 
-    # თუ ეს ხაზი ჩართულია, მაგრამ მაქსიმალური სიზუსტისთვის საჭიროა.
 
     print(f"✅ Deterministic mode enabled with seed: {seed}")
