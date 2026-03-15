@@ -1,6 +1,7 @@
 import torch
 import copy
-from main import build_model, compute_class_weights, save_metrics
+# from main import compute_class_weights, save_metrics
+from src.utils.helpers import build_model, compute_class_weights, save_metrics
 from src.models.losses import build_loss
 from src.engine import train
 from src.evaluate import evaluate

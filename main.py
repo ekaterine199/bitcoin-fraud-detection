@@ -1,29 +1,13 @@
-import json
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch_geometric.data import Data
 from src.dataset import EllipticDataset
 from src.utils.sanity_check import perform_sanity_check
-from utils.cli import select_model_from_menu, select_loss_from_menu, ask_run_again, run_single_experiment
+from src.utils.cli import select_model_from_menu, select_loss_from_menu, ask_run_again, run_single_experiment
 from src.utils.visualizer import visualize_graph
 from src.baseline import run_baseline
-
-def compute_class_weights(data):
-    train_labels = data.y[data.train_mask]
-    known_mask = (train_labels != -1)
-    known_labels = train_labels[known_mask].long()
-
-    class_counts = torch.bincount(known_labels, minlength=2).float()
-
-    # Inverse-frequency style weighting
-    weights = class_counts.sum() / (2.0 * class_counts)
-    return weights
-
-
-def save_metrics(metrics_by_split, output_path):
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(metrics_by_split, f, indent=2)
+from src.utils.helpers import save_metrics
 
 def main():
     print("🚀 Starting the pipeline...")

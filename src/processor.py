@@ -2,6 +2,7 @@ import pandas as pd
 import torch
 import os
 import glob
+from sklearn.preprocessing import StandardScaler
 from torch_geometric.data import Data
 from src.config import RAW_DIR
 
@@ -48,7 +49,8 @@ def process_raw_data():
     # ==============================================================
     
     # 5. Prepare Tensors
-    x = torch.tensor(combined_df.drop(columns=['tx_id', 'class']).values, dtype=torch.float)
+    # x = torch.tensor(combined_df.drop(columns=['tx_id', 'class']).values, dtype=torch.float)
+    x_np = combined_df.drop(columns=['tx_id', 'class']).values
 
     y = torch.tensor(combined_df['class'].values, dtype=torch.long)
     timesteps = torch.tensor(combined_df['timestep'].values, dtype=torch.long)
@@ -69,6 +71,14 @@ def process_raw_data():
     val_mask = (timesteps >= 31) & (timesteps <= 34) & labeled_mask
     test_mask = (timesteps >= 35) & (timesteps <= 49) & labeled_mask
     # ==============================================================
+
+    # Scale features to prevent exploding gradients in GNNs
+    scaler = StandardScaler()
+    # Fit ONLY on the training nodes to prevent future data leakage
+    scaler.fit(x_np[train_mask.numpy()])
+    x_scaled = scaler.transform(x_np)
+
+    x = torch.tensor(x_scaled, dtype=torch.float)
 
     # OLD CODE COMMENTED OUT BELOW:
     # data_object = {
