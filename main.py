@@ -1,3 +1,5 @@
+import os
+os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -6,12 +8,15 @@ from src.dataset import EllipticDataset
 from src.utils.sanity_check import perform_sanity_check
 from src.utils.cli import select_model_from_menu, select_loss_from_menu, ask_run_again, run_single_experiment
 from src.utils.visualizer import visualize_graph
+from src.utils.reproducibility import seed_everything
 from src.baseline import run_baseline
 from src.utils.helpers import save_metrics
 from src.eda import run_comprehensive_eda
 
 
 def main():
+    seed_everything(42)
+
     print("🚀 Starting the pipeline...")
     dataset = EllipticDataset()
     raw_data = dataset.data
