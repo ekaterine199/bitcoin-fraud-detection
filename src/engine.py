@@ -1,16 +1,18 @@
+# src/engine.py
+
 def train(model, data, optimizer, criterion, device):
     model.train()
     optimizer.zero_grad()
     
     out = model(data.x, data.edge_index)
-    
-    valid_mask = (data.y[data.train_mask] != -1)
-    
+
+    supervised_mask = data.train_mask & (data.y != -1)
+
     loss = criterion(
-        out[data.train_mask][valid_mask], 
-        data.y[data.train_mask][valid_mask]
+        out[supervised_mask],
+        data.y[supervised_mask]
     )
-    
+
     loss.backward()
     optimizer.step()
     return loss.item()

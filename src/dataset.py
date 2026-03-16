@@ -11,6 +11,7 @@ class EllipticDataset:
     def _load_or_process(self):
         if os.path.exists(PROCESSED_FILE):
             print(f"🚀 Loading cached graph data from {PROCESSED_FILE}")
+
             return torch.load(PROCESSED_FILE, weights_only=False)
         
         print("⚠️ Processed data missing. Initializing setup sequence...")

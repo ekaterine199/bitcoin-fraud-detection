@@ -15,3 +15,10 @@ PROCESSED_FILE = os.path.join(PROCESSED_DIR, 'elliptic_graph.pt')
 # create directories if they don't exist
 os.makedirs(RAW_DIR, exist_ok=True)
 os.makedirs(PROCESSED_DIR, exist_ok=True)
+
+# Output locations for saved visualizations and metrics.
+IMG_DIR = os.path.join(BASE_DIR, 'img')
+METRICS_DIR = os.path.join(BASE_DIR, 'metrics')
+
+os.makedirs(IMG_DIR, exist_ok=True)
+os.makedirs(METRICS_DIR, exist_ok=True)

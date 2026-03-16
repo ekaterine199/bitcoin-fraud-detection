@@ -1,61 +1,69 @@
+import os
+os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 from torch_geometric.data import Data
-from src.models.gcn import FraudGCN
 from src.dataset import EllipticDataset
-from src.models.sage import FraudGraphSAGE
-from src.engine import train
-from src.evaluate import evaluate
+from src.utils.sanity_check import perform_sanity_check
+from src.utils.cli import select_model_from_menu, select_loss_from_menu, ask_run_again, run_single_experiment
+from src.utils.visualizer import visualize_graph
+from src.utils.reproducibility import seed_everything
+from src.baseline import run_baseline
+from src.utils.helpers import save_metrics
+from src.eda import run_comprehensive_eda
+
 
 def main():
+    seed_everything(42)
+
     print("🚀 Starting the pipeline...")
     dataset = EllipticDataset()
-    raw_data = dataset.data  
+    raw_data = dataset.data
     data = Data(**raw_data) if isinstance(raw_data, dict) else raw_data
-    
-    num_nodes = data.x.shape[0]
-    indices = torch.randperm(num_nodes)
-    train_size = int(0.8 * num_nodes)
-    
-    data.train_mask = torch.zeros(num_nodes, dtype=torch.bool)
-    data.train_mask[indices[:train_size]] = True
-    
-    data.val_mask = torch.zeros(num_nodes, dtype=torch.bool)
-    data.val_mask[indices[train_size:]] = True
-        
+
+    if not hasattr(data, "train_mask") or not hasattr(data, "val_mask") or not hasattr(data, "test_mask"):
+        raise ValueError("Data object is missing train/val/test masks. Check processor.py.")
+
+    run_comprehensive_eda(data, output_dir="img/eda")
+    perform_sanity_check(data)
+    visualize_graph(data, output_dir="img", num_nodes=200)
+
+    run_baseline()       
+
+    print(f"Train labeled nodes: {int(data.train_mask.sum())}")
+    print(f"Val labeled nodes:   {int(data.val_mask.sum())}")
+    print(f"Test labeled nodes:  {int(data.test_mask.sum())}")
+    print(f"Unknown nodes:       {int((data.y == -1).sum())}")
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    
-    model = FraudGraphSAGE(
-        in_channels=data.x.shape[1], 
-        hidden_channels=128,         
-        out_channels=2,              
-        num_layers=3                 
-    ).to(device)
-    
     data = data.to(device)
-    
 
-    train_labels = data.y[data.train_mask]
-    known_mask = (train_labels != -1)
+    session_results = []
+    run_id = 1
 
-    class_counts = torch.bincount(train_labels[known_mask].long()).float()
+    while True:
+        model_name = select_model_from_menu()
+        loss_name = select_loss_from_menu()
 
-    weights = 1.0 / (class_counts + 1e-6)
-    weights /= weights.sum()
-    
-    criterion = torch.nn.CrossEntropyLoss(weight=weights.to(device))
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-    
-    print(f"🧠 Model running on: {device}")
-    
-    for epoch in range(101):
-        loss = train(model, data, optimizer, criterion, device)
-        
-        if epoch % 10 == 0:
-            metrics = evaluate(model, data, data.val_mask)
-            print(f"Epoch {epoch:03d} | Loss: {loss:.4f} | F1: {metrics['f1']:.4f} | "
-                  f"P: {metrics['precision']:.4f} | R: {metrics['recall']:.4f}")
+        experiment_result = run_single_experiment(
+            data=data,
+            device=device,
+            model_name=model_name,
+            loss_name=loss_name,
+            run_id=run_id
+        )
+
+        session_results.append(experiment_result)
+        run_id += 1
+
+        if not ask_run_again():
+            break
+
+    save_metrics(session_results, "experiment_session_summary.json")
 
     print("✅ Pipeline complete.")
+
 
 if __name__ == "__main__":
     main()

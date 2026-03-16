@@ -1,0 +1,32 @@
+{
+  "description": "GNN must exceed ALL of these baseline metrics",
+  "best_baseline_model": "GradientBoosting",
+  "min_minority_f1": 0.6644,
+  "min_pr_auc": 0.7434,
+  "min_minority_recall": 0.6152,
+  "min_minority_precision": 0.7221,
+  "min_macro_f1": 0.8239,
+  "min_roc_auc": 0.9566,
+  "all_baselines": [
+    {
+      "model": "Random Forest",
+      "minority_f1": 0.6846,
+      "minority_precision": 0.9375,
+      "minority_recall": 0.5391,
+      "macro_f1": 0.8357,
+      "weighted_f1": 0.9715,
+      "pr_auc": 0.6963,
+      "roc_auc": 0.9496
+    },
+    {
+      "model": "GradientBoosting",
+      "minority_f1": 0.6644,
+      "minority_precision": 0.7221,
+      "minority_recall": 0.6152,
+      "macro_f1": 0.8239,
+      "weighted_f1": 0.9672,
+      "pr_auc": 0.7434,
+      "roc_auc": 0.9566
+    }
+  ]
+}

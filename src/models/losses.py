@@ -1,0 +1,51 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class FocalLoss(nn.Module):
+    def __init__(self, alpha=None, gamma=2.0, reduction='mean'):
+        super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.reduction = reduction
+
+    def forward(self, logits, targets):
+        # ce_loss = F.cross_entropy(logits, targets, reduction='none', weight=self.alpha)
+        # pt = torch.exp(-ce_loss)
+        # focal_loss = ((1 - pt) ** self.gamma) * ce_loss
+
+        # if self.reduction == 'mean':
+        #     return focal_loss.mean()
+        # elif self.reduction == 'sum':
+        #     return focal_loss.sum()
+        # return focal_loss
+
+
+        # 1. Get raw, unweighted Cross Entropy
+        ce_loss_unweighted = F.cross_entropy(logits, targets, reduction='none')        
+        # 2. Get true probabilities (pt)
+        pt = torch.exp(-ce_loss_unweighted)
+        # 3. Calculate focal term
+        focal_term = ((1 - pt) ** self.gamma)
+        # 4. Apply alpha (class weights) manually to the specific target classes
+        if self.alpha is not None:
+            alpha_t = self.alpha[targets]
+            focal_loss = alpha_t * focal_term * ce_loss_unweighted
+        else:
+            focal_loss = focal_term * ce_loss_unweighted
+
+        if self.reduction == 'mean':
+            return focal_loss.mean()
+        elif self.reduction == 'sum':
+            return focal_loss.sum()
+        return focal_loss
+
+
+def build_loss(loss_name, class_weights):
+    if loss_name == "weighted_ce":
+        return torch.nn.CrossEntropyLoss(weight=class_weights)
+
+    if loss_name == "focal":
+        return FocalLoss(alpha=class_weights, gamma=2.0)
+
+    raise ValueError(f"Unsupported loss_name: {loss_name}")
