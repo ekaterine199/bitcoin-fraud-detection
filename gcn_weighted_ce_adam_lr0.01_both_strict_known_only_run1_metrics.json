@@ -1,0 +1,46 @@
+{
+  "run_id": 1,
+  "model_name": "gcn",
+  "loss_name": "weighted_ce",
+  "optimizer_name": "adam",
+  "learning_rate": 0.01,
+  "feature_mode": "both",
+  "split_mode": "strict",
+  "include_unknown_class": false,
+  "train": {
+    "f1": 0.8922867315780115,
+    "precision": 0.8510295534928602,
+    "recall": 0.9519388235860808,
+    "f1_illicit": 0.8123014727115218,
+    "precision_illicit": 0.7082074521651561,
+    "recall_illicit": 0.9522681110358836,
+    "pr_auc": 0.9138203195007726,
+    "roc_auc": 0.9896908258332778,
+    "macro_f1_all": 0.8922867315780115,
+    "f1_unknown": NaN
+  },
+  "val": {
+    "f1": 0.8203612323654077,
+    "precision": 0.7926231752987033,
+    "recall": 0.8645449510770041,
+    "f1_illicit": 0.7121212121212122,
+    "precision_illicit": 0.6220588235294118,
+    "recall_illicit": 0.8326771653543307,
+    "pr_auc": 0.7738906912466227,
+    "roc_auc": 0.9234052817158436,
+    "macro_f1_all": 0.8203612323654077,
+    "f1_unknown": NaN
+  },
+  "test": {
+    "f1": 0.7033541225431322,
+    "precision": 0.6896898135098128,
+    "recall": 0.7199333488184538,
+    "f1_illicit": 0.4485981308411215,
+    "precision_illicit": 0.4154209284028324,
+    "recall_illicit": 0.48753462603878117,
+    "pr_auc": 0.44441411609737747,
+    "roc_auc": 0.8291637543206835,
+    "macro_f1_all": 0.7033541225431322,
+    "f1_unknown": NaN
+  }
+}

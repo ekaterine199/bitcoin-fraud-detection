@@ -6,7 +6,12 @@ def train(model, data, optimizer, criterion, device):
     
     out = model(data.x, data.edge_index)
 
-    supervised_mask = data.train_mask & (data.y != -1)
+    # OLD CODE COMMENTED OUT BELOW:
+    # supervised_mask = data.train_mask & (data.y != -1)
+
+    # NEW CODE =====================================================
+    supervised_mask = getattr(data, "supervised_train_mask", data.train_mask & (data.y != -1))
+    # =============================================================
 
     loss = criterion(
         out[supervised_mask],
